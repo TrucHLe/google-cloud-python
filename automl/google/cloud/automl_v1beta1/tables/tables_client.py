@@ -607,6 +607,7 @@ class TablesClient(object):
         dataset_name=None,
         gcs_input_uris=None,
         bigquery_input_uri=None,
+        pandas_dataframe=None,
         project=None,
         region=None,
         **kwargs
@@ -681,6 +682,10 @@ class TablesClient(object):
             region=region,
             **kwargs
         )
+
+        if pandas_dataframe is not None:
+            # lazy init gcs client using `self.auto_ml_client.credentials`
+            # upload to gcs, lookup chunking behavior
 
         request = {}
         if gcs_input_uris is not None:
