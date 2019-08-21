@@ -16,6 +16,7 @@
 
 """Wraps the Google Cloud Storage client library for use in tables helper."""
 
+import os
 import pandas
 import time
 
@@ -72,10 +73,12 @@ class GcsClient(object):
 
         if uploaded_csv_name is None:
             uploaded_csv_name = "automl-tables-dataframe-{}".format(int(time.time()))
-        local_csv_name = uploaded_csv_name + ".csv"
-        dataframe.to_csv(local_csv_name)
+        local_csv_file = uploaded_csv_name + ".csv"
+        dataframe.to_csv(local_csv_file)
         
         bucket = self.client.get_bucket(bucket_name)
         blob = bucket.blob(uploaded_csv_name)
-        blob.upload_from_filename(local_csv_name)
+        blob.upload_from_filename(local_csv_file)
+
+        os.remove(local_csv_file)
         return uploaded_csv_name
