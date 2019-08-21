@@ -42,7 +42,7 @@ class GcsClient(object):
         else:
             self.client = client
 
-    def create_bucket(self, bucket_name=None):
+    def create_bucket(bucket_name=None):
         """Creates a new bucket and returns the created bucket's name.
         
         Args:
