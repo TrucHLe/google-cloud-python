@@ -58,24 +58,24 @@ class GcsClient(object):
         return bucket_name
 
     def upload_pandas_dataframe(self, bucket_name, dataframe, uploaded_csv_name=None):
-        """Converts a Pandas DataFrame to CSV and uploads the CSV to the bucket.
+        """Uploads a Pandas DataFrame as CSV to the bucket.
+
+        Returns the uploaded CSV name at the end.
 
         Args:
             bucket_name (string): The bucket name to upload the CSV to.
             dataframe (pandas.DataFrame): The Pandas Dataframe to be uploaded.
-            uploaded_csv_name (string): The name for the uploaded CSV file.
+            uploaded_csv_name (Optional[string]): The name for the uploaded CSV file.
         """
-        if bucket_name is None:
-            raise ValueError("'bucket_name' must not be empty.")
-
         if not isinstance(dataframe, pandas.DataFrame):
             raise ValueError("'dataframe' must be a pandas.DataFrame instance.")
 
         if uploaded_csv_name is None:
-            uploaded_csv_name = "automl-table-dataframe-{}".format(int(time.time()))
+            uploaded_csv_name = "automl-tables-dataframe-{}".format(int(time.time()))
         local_csv_name = uploaded_csv_name + ".csv"
         dataframe.to_csv(local_csv_name)
         
         bucket = self.client.get_bucket(bucket_name)
         blob = bucket.blob(uploaded_csv_name)
         blob.upload_from_filename(local_csv_name)
+        return uploaded_csv_name

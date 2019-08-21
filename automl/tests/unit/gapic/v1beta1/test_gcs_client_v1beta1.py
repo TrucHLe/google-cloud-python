@@ -17,6 +17,7 @@
 """Unit tests."""
 
 import mock
+import pandas
 import pytest
 import re
 
@@ -31,20 +32,43 @@ class TestGcsClient(object):
 
     def test_create_bucket_name(self):
         gcs_client = self.gcs_client()
-        created_bucket_name = gcs_client.create_bucket("my-bucket-name")
-        gcs_client.client.create_bucket.assert_called_with("my-bucket_name")
+        gcs_client.create_bucket("my-bucket-name")
+        gcs_client.client.create_bucket.assert_called_with("my-bucket-name")
 
     def test_create_bucket_no_bucket_name(self):
         gcs_client = self.gcs_client()
         generated_bucket_name = gcs_client.create_bucket()
-        gcs_client.client.create_bucket.assert_called_with(generated__bucket_name)
+        gcs_client.client.create_bucket.assert_called_with(generated_bucket_name)
         assert re.match('^automl-tables-bucket-[0-9]*$', generated_bucket_name) 
 
     def test_upload_pandas_dataframe(self):
+        gcs_client = self.gcs_client()
+        dataframe = pandas.DataFrame({})
 
-    def test_upload_pandas_dataframe_no_bucket_name(self):
+        gcs_client.upload_pandas_dataframe("my-bucket-name", dataframe, "my-csv-name")
+        gcs_client.client.get_bucket.assert_called_with("my-bucket-name")
+
+        mock_bucket = gcs_client.client.get_bucket.return_value
+        mock_bucket.blob.assert_called_with("my-csv-name")
+        mock_blob = mock_bucket.blob.return_value
+        mock_blob.upload_from_filename.assert_called_with("my-csv-name.csv")
+
+    def test_upload_pandas_dataframe_not_type_dataframe(self):
         gcs_client = self.gcs_client()
         with pytest.raises(ValueError):
-            
+            gcs_client.upload_pandas_dataframe("my-bucket-name", "my-dataframe")
+        gcs_client.client.upload_pandas_dataframe.assert_not_called()
 
-    def test_upload_pandas_dataframe(self):
+    def test_upload_pandas_dataframe_no_csv_name(self):
+        gcs_client = self.gcs_client()
+        dataframe = pandas.DataFrame({})
+
+        generated_csv_name = gcs_client.upload_pandas_dataframe("my-bucket-name", dataframe)
+        gcs_client.client.get_bucket.assert_called_with("my-bucket-name")
+
+        mock_bucket = gcs_client.client.get_bucket.return_value
+        mock_bucket.blob.assert_called_with(generated_csv_name)
+        mock_blob = mock_bucket.blob.return_value
+        mock_blob.upload_from_filename.assert_called_with(generated_csv_name + ".csv")
+        assert re.match('^automl-tables-dataframe-[0-9]*$', generated_csv_name)
+
