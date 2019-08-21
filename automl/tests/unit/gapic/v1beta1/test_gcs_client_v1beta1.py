@@ -71,4 +71,3 @@ class TestGcsClient(object):
         mock_blob = mock_bucket.blob.return_value
         mock_blob.upload_from_filename.assert_called_with(generated_csv_name + ".csv")
         assert re.match('^automl-tables-dataframe-[0-9]*$', generated_csv_name)
-
